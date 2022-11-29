@@ -8,8 +8,9 @@ Cases differ in `AndroidManifest.xml` setups
 
 This is the case I encountered in my project
 
-- run `yarn` on `main` branch
 - if already installed, uninstall app from device
+- run `git checkout main`
+- run `yarn`
 - run `git checkout 9b9aaf1`
 - install app on Android 12 device `npx react-native run-android`
 - Allow location permission
@@ -25,8 +26,9 @@ In this case I think it should not be failing, because I did not do anything oth
 
 Here I followed setup from current docs
 
-- run `yarn` on `main` branch
 - if already installed, uninstall app from device
+- run `git checkout main`
+- run `yarn`
 - run `git checkout 9b9aaf1`
 - install app on Android 12 device `npx react-native run-android`
 - Allow location permission
@@ -38,8 +40,9 @@ Here it already fails with the non forked version, it's because the `BLUETOOTH` 
 
 Initial setup according to https://github.com/Pilloxa/react-native-nordic-dfu/issues/169#issuecomment-1180174896
 
-- run `yarn` on `main` branch
 - if already installed, uninstall app from device
+- run `git checkout main`
+- run `yarn`
 - run `git checkout 0270d74`
 - install app on Android 12 device `npx react-native run-android`
 - Allow location permission
