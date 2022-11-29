@@ -1,111 +1,100 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
-
-import React from 'react';
-import type {Node} from 'react';
+import React, {useState, useRef, useEffect, useCallback} from 'react';
 import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
+  NativeEventEmitter,
+  NativeModules,
+  PermissionsAndroid,
 } from 'react-native';
+import BleManager from 'react-native-ble-manager';
+import {ActivityIndicator, Button, StyleSheet, Text, View} from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const BleManagerModule = NativeModules.BleManager;
+const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
-const Section = ({children, title}): Node => {
-  const isDarkMode = useColorScheme() === 'dark';
+const SERVICE_UUIDS = [];
+const App = () => {
+  const [bleManagerStarted, setBleManagerStarted] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [devices, setDevices] = useState([]);
+  const peripherals = useRef(new Map());
+
+  useEffect(() => {
+    BleManager.start().then(() => {
+      setBleManagerStarted(true);
+    });
+
+    PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      {
+        title: 'Location permission',
+        message: 'Agree',
+        buttonNeutral: 'Ask Me Later',
+        buttonNegative: 'Cancel',
+        buttonPositive: 'OK',
+      },
+    );
+
+    const sub1 = bleManagerEmitter.addListener(
+      'BleManagerDiscoverPeripheral',
+      peripheral => {
+        console.log({peripheral});
+        if (!peripheral.name) {
+          peripheral.name = 'NO NAME';
+        }
+        peripherals.current.set(peripheral.id, peripheral);
+        setDevices(Array.from(peripherals.current.values()));
+      },
+    );
+    const sub2 = bleManagerEmitter.addListener('BleManagerStopScan', () => {
+      setScanning(false);
+    });
+
+    return () => {
+      sub1.remove();
+      sub2.remove();
+    };
+  }, []);
+
+  const startSearch = useCallback(() => {
+    BleManager.scan(SERVICE_UUIDS, 30, true).then(() => {
+      setScanning(true);
+    });
+  }, []);
+
+  const stopSearch = useCallback(() => {
+    BleManager.stopScan();
+  }, []);
+
+  if (!bleManagerStarted) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
+    <View style={styles.center}>
+      <Text style={{fontSize: 20, marginBottom: 10}}>BLE Manager Started</Text>
+      <Button
+        title={scanning ? 'stop search' : 'start search'}
+        onPress={scanning ? stopSearch : startSearch}
+      />
+      <Text style={{fontSize: 20, marginTop: 20}}>Found devices:</Text>
+      {!devices.length && <Text>No devices found</Text>}
+      {devices.map(device => (
+        <Text key={device.id} style={{marginBottom: 10}}>
+          {device.name}
+        </Text>
+      ))}
     </View>
   );
 };
 
-const App: () => Node = () => {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.js</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-};
-
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
