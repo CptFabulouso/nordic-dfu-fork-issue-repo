@@ -33,6 +33,20 @@ const App = () => {
       },
     );
 
+    PermissionsAndroid.requestMultiple(
+      [
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+      ],
+      {
+        title: 'Bluetooth scan permission',
+        message: 'Agree',
+        buttonNeutral: 'Ask Me Later',
+        buttonNegative: 'Cancel',
+        buttonPositive: 'OK',
+      },
+    );
+
     const sub1 = bleManagerEmitter.addListener(
       'BleManagerDiscoverPeripheral',
       peripheral => {
