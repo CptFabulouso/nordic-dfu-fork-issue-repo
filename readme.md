@@ -21,6 +21,7 @@ This is the case I encountered in my project
 - Start bluetooth scan to test implementation - it fails
 
 In this case I think it should not be failing, because I did not do anything other then installing the forked version.
+Reverting to original package won't fix this issue, we now must be handling the `BLUETOOTH_SCAN` permission.
 
 ## current-docs-case
 
