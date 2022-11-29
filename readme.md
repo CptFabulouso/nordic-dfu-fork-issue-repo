@@ -29,7 +29,7 @@ Here I followed setup from current docs
 - if already installed, uninstall app from device
 - run `git checkout main`
 - run `yarn`
-- run `git checkout 9b9aaf1`
+- run `git checkout c0118e9`
 - install app on Android 12 device `npx react-native run-android`
 - Allow location permission
 - Start bluetooth scan to test implementation - it fails
